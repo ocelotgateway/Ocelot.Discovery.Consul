@@ -3,41 +3,16 @@ using Ocelot.Configuration.Repository;
 
 namespace Ocelot.Discovery.Consul;
 
-public class ConsulFileConfigurationPollerOptions : IFileConfigurationPollerOptions
+public class ConsulFileConfigurationPollerOptions(
+    IInternalConfigurationRepository internalRepo,
+    IFileConfigurationRepository fileRepo)
+    : ServiceDiscoveryFileConfigurationPollerOptions(internalRepo, fileRepo), IFileConfigurationPollerOptions
 {
-    private readonly IInternalConfigurationRepository _internalRepository;
-    private readonly IFileConfigurationRepository _fileRepository;
-
-    public ConsulFileConfigurationPollerOptions(IInternalConfigurationRepository internalRepo, IFileConfigurationRepository fileRepo)
+    protected override int GetDelay(FileConfiguration configuration)
     {
-        _internalRepository = internalRepo;
-        _fileRepository = fileRepo;
-    }
-
-    public const int DefaultDelay = 1000;
-
-    public int Delay()
-    {
-        var configuration = _fileRepository.Get();
-        return GetDelay(configuration);
-    }
-
-    public async Task<int> DelayAsync(CancellationToken cancellationToken = default)
-    {
-        var configuration = await _fileRepository.GetAsync(cancellationToken);
-        return GetDelay(configuration);
-    }
-
-    private int GetDelay(FileConfiguration configuration)
-    {
-        var discoveryOpts = configuration?.GlobalConfiguration?.ServiceDiscoveryProvider;
-        if (discoveryOpts != null && discoveryOpts.PollingInterval > 0)
-            return discoveryOpts.PollingInterval;
-
-        var internalConfig = _internalRepository.Get();
-        var discoveryConfig = internalConfig?.ServiceProviderConfiguration;
-        return (discoveryConfig != null && discoveryConfig.PollingInterval > 0)
-            ? discoveryConfig.PollingInterval
-            : DefaultDelay;
+        // The argument might be read from anywhere, but it should be handled by IFileConfigurationRepository service.
+        // The user can define custom Metadata for the option: static, varying, or even a function based on statistics or a schedule.
+        // For now, we utilize base Ocelot's functionality -> configuration.GlobalConfiguration.ServiceDiscoveryProvider.PollingInterval
+        return base.GetDelay(configuration);
     }
 }

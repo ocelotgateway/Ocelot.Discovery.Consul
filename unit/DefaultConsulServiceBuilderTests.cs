@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 
 namespace Ocelot.Discovery.Consul.UnitTests;
 
-public sealed class DefaultConsulServiceBuilderTests
+public sealed class DefaultConsulServiceBuilderTests : Unit
 {
     private DefaultConsulServiceBuilder sut;
     private readonly Mock<IHttpContextAccessor> contextAccessor;
@@ -43,6 +43,9 @@ public sealed class DefaultConsulServiceBuilderTests
         var propClient = sut.GetType().GetProperty("Client", BindingFlags.NonPublic | BindingFlags.Instance);
         var propLogger = sut.GetType().GetProperty("Logger", BindingFlags.NonPublic | BindingFlags.Instance);
         var propConfiguration = sut.GetType().GetProperty("Configuration", BindingFlags.NonPublic | BindingFlags.Instance);
+        Assert.NotNull(propClient);
+        Assert.NotNull(propLogger);
+        Assert.NotNull(propConfiguration);
 
         // Act
         var actualConfiguration = propConfiguration.GetValue(sut);
@@ -50,13 +53,14 @@ public sealed class DefaultConsulServiceBuilderTests
         var actualLogger = propLogger.GetValue(sut);
 
         // Assert
-        actualConfiguration.ShouldNotBeNull().ShouldBe(_configuration);
-        actualClient.ShouldNotBeNull();
-        actualLogger.ShouldNotBeNull();
+        Assert.NotNull(actualConfiguration);
+        Assert.Equal(_configuration, actualConfiguration);
+        Assert.NotNull(actualClient);
+        Assert.NotNull(actualLogger);
     }
 
     private static Type Me { get; } = typeof(DefaultConsulServiceBuilder);
-    private static MethodInfo GetNode { get; } = Me.GetMethod("GetNode", BindingFlags.NonPublic | BindingFlags.Instance);
+    private static MethodInfo GetNode { get; } = Me.GetMethod(nameof(GetNode), BindingFlags.NonPublic | BindingFlags.Instance);
 
     [Fact]
     public void GetNode_EntryBranch_ReturnsEntryNode()
@@ -66,11 +70,12 @@ public sealed class DefaultConsulServiceBuilderTests
         ServiceEntry entry = new() { Node = node };
 
         // Act
-        var actual = GetNode.Invoke(sut, new object[] { entry, null }) as Node;
+        var actual = GetNode.Invoke(sut, [entry, null]) as Node;
 
         // Assert
-        actual.ShouldNotBeNull().ShouldBe(node);
-        actual.Name.ShouldBe(node.Name);
+        Assert.NotNull(actual);
+        Assert.Same(node, actual);
+        Assert.Equal(node.Name, actual.Name);
     }
 
     [Fact]
@@ -80,36 +85,36 @@ public sealed class DefaultConsulServiceBuilderTests
         ServiceEntry entry = new()
         {
             Node = null,
-            Service = new() { Address = nameof(GetNode_NodesBranch_ReturnsNodeFromCollection) },
+            Service = new() { Address = TestName() },
         };
         Node[] nodes = null;
 
         // Act, Assert: nodes is null
-        var actual = GetNode.Invoke(sut, new object[] { entry, nodes }) as Node;
-        actual.ShouldBeNull();
+        var actual = GetNode.Invoke(sut, [entry, nodes]) as Node;
+        Assert.Null(actual);
 
         // Arrange, Act, Assert: nodes has items, happy path
-        var node = new Node { Address = nameof(GetNode_NodesBranch_ReturnsNodeFromCollection) };
-        nodes = new[] { node };
-        actual = GetNode.Invoke(sut, new object[] { entry, nodes }) as Node;
-        actual.ShouldNotBeNull().ShouldBe(node);
-        actual.Address.ShouldBe(entry.Service.Address);
+        var node = new Node { Address = TestName() };
+        nodes = [node];
+        actual = GetNode.Invoke(sut, [entry, nodes]) as Node;
+        Assert.NotNull(actual); Assert.Same(node, actual);
+        Assert.Equal(entry.Service.Address, actual.Address);
 
         // Arrange, Act, Assert: nodes has items, some nulls in entry
         entry.Service.Address = null;
-        actual = GetNode.Invoke(sut, new object[] { entry, nodes }) as Node;
-        actual.ShouldBeNull();
+        actual = GetNode.Invoke(sut, [entry, nodes]) as Node;
+        Assert.Null(actual);
 
         entry.Service = null;
-        actual = GetNode.Invoke(sut, new object[] { entry, nodes }) as Node;
-        actual.ShouldBeNull();
+        actual = GetNode.Invoke(sut, [entry, nodes]) as Node;
+        Assert.Null(actual);
 
         entry = null;
-        actual = GetNode.Invoke(sut, new object[] { entry, nodes }) as Node;
-        actual.ShouldBeNull();
+        actual = GetNode.Invoke(sut, [entry, nodes]) as Node;
+        Assert.Null(actual);
     }
 
-    private static MethodInfo GetDownstreamHost { get; } = Me.GetMethod("GetDownstreamHost", BindingFlags.NonPublic | BindingFlags.Instance);
+    private static MethodInfo GetDownstreamHost { get; } = Me.GetMethod(nameof(GetDownstreamHost), BindingFlags.NonPublic | BindingFlags.Instance);
 
     [Fact]
     public void GetDownstreamHost_BothBranches_NameOrAddress()
@@ -119,19 +124,19 @@ public sealed class DefaultConsulServiceBuilderTests
         // Arrange, Act, Assert: node branch
         ServiceEntry entry = new()
         {
-            Service = new() { Address = nameof(GetDownstreamHost_BothBranches_NameOrAddress) },
+            Service = new() { Address = TestName() },
         };
         var node = new Node { Name = "test1" };
-        var actual = GetDownstreamHost.Invoke(sut, new object[] { entry, node }) as string;
-        actual.ShouldNotBeNull().ShouldBe("test1");
+        var actual = GetDownstreamHost.Invoke(sut, [entry, node]) as string;
+        Assert.NotNull(actual); Assert.Equal("test1", actual);
 
         // Arrange, Act, Assert: entry branch
         node = null;
-        actual = GetDownstreamHost.Invoke(sut, new object[] { entry, node }) as string;
-        actual.ShouldNotBeNull().ShouldBe(nameof(GetDownstreamHost_BothBranches_NameOrAddress));
+        actual = GetDownstreamHost.Invoke(sut, [entry, node]) as string;
+        Assert.NotNull(actual); Assert.Equal(TestName(), actual);
     }
 
-    private static MethodInfo GetServiceVersion { get; } = Me.GetMethod("GetServiceVersion", BindingFlags.NonPublic | BindingFlags.Instance);
+    private static MethodInfo GetServiceVersion { get; } = Me.GetMethod(nameof(GetServiceVersion), BindingFlags.NonPublic | BindingFlags.Instance);
 
     [Fact]
     public void GetServiceVersion_TagsIsNull_EmptyString()
@@ -144,13 +149,13 @@ public sealed class DefaultConsulServiceBuilderTests
             Service = new() { Tags = null },
         };
         Node node = null;
-        var actual = GetServiceVersion.Invoke(sut, new object[] { entry, node }) as string;
-        actual.ShouldBe(string.Empty);
+        var actual = GetServiceVersion.Invoke(sut, [entry, node]) as string;
+        Assert.Empty(actual);
 
         // Arrange, Act, Assert: collection has no version tag
-        entry.Service.Tags = new[] { "test" };
-        actual = GetServiceVersion.Invoke(sut, new object[] { entry, node }) as string;
-        actual.ShouldBe(string.Empty);
+        entry.Service.Tags = ["test"];
+        actual = GetServiceVersion.Invoke(sut, [entry, node]) as string;
+        Assert.Empty(actual);
     }
 
     [Fact]
@@ -167,13 +172,13 @@ public sealed class DefaultConsulServiceBuilderTests
         Node node = null;
 
         // Act
-        var actual = GetServiceVersion.Invoke(sut, new object[] { entry, node }) as string;
+        var actual = GetServiceVersion.Invoke(sut, [entry, node]) as string;
 
         // Assert
-        actual.ShouldBe("v2");
+        Assert.Equal("v2", actual);
     }
 
-    private static MethodInfo GetServiceTags { get; } = Me.GetMethod("GetServiceTags", BindingFlags.NonPublic | BindingFlags.Instance);
+    private static MethodInfo GetServiceTags { get; } = Me.GetMethod(nameof(GetServiceTags), BindingFlags.NonPublic | BindingFlags.Instance);
 
     [Fact]
     public void GetServiceTags_BothBranches()
@@ -186,14 +191,14 @@ public sealed class DefaultConsulServiceBuilderTests
             Service = new() { Tags = null },
         };
         Node node = null;
-        var actual = GetServiceTags.Invoke(sut, new object[] { entry, node }) as IEnumerable<string>;
-        actual.ShouldNotBeNull().ShouldBeEmpty();
+        var actual = GetServiceTags.Invoke(sut, [entry, node]) as IEnumerable<string>;
+        Assert.NotNull(actual); Assert.Empty(actual);
 
         // Arrange, Act, Assert: happy path
-        entry.Service.Tags = new string[] { "1", "2", "3" };
-        actual = GetServiceTags.Invoke(sut, new object[] { entry, node }) as IEnumerable<string>;
-        actual.ShouldNotBeNull().ShouldNotBeEmpty();
-        actual.Count().ShouldBe(3);
-        actual.ShouldContain("3");
+        entry.Service.Tags = ["1", "2", "3"];
+        actual = GetServiceTags.Invoke(sut, [entry, node]) as IEnumerable<string>;
+        Assert.NotNull(actual); Assert.NotEmpty(actual);
+        Assert.Equal(3, actual.Count());
+        Assert.Contains("3", actual);
     }
 }

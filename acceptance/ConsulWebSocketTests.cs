@@ -2,9 +2,9 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
-using Ocelot.AcceptanceTests.WebSockets;
 using Ocelot.Configuration.File;
 using Ocelot.DependencyInjection;
+using Ocelot.Testing.Steps;
 using TestStack.BDDfy;
 
 namespace Ocelot.Discovery.Consul.Acceptance;

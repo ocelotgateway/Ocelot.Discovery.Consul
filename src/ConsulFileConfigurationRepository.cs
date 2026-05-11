@@ -1,15 +1,25 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Ocelot.Cache;
 using Ocelot.Configuration;
 using Ocelot.Configuration.File;
 using Ocelot.Configuration.Repository;
+using Ocelot.DependencyInjection;
 using Ocelot.Logging;
 using Ocelot.Responses;
 using System.Text;
 
 namespace Ocelot.Discovery.Consul;
 
+/// <summary>
+/// Consul Feature: <see cref="OcelotBuilderExtensions.AddConfigStoredInConsul(IOcelotBuilder)"/>.<br/>
+/// Ocelot Features: <see cref="Features.AddOcelotConfigurationRepository(IServiceCollection)"/> and <see cref="IOcelotBuilder.AddConfigurationPoller()"/>.
+/// </summary>
+/// <remarks>
+/// Feature Commit: <see href="https://github.com/ThreeMammals/Ocelot/commit/c3cd181b90fb5d5353b886073b3b7c66c12c6bab">c3cd181</see>.<br/>
+/// Feature PR: <see href="https://github.com/ThreeMammals/Ocelot/pull/157/">157</see>.
+/// </remarks>
 public class ConsulFileConfigurationRepository : IFileConfigurationRepository
 {
     private readonly IOcelotCache<FileConfiguration> _cache;
@@ -36,44 +46,53 @@ public class ConsulFileConfigurationRepository : IFileConfigurationRepository
         _consul = factory.Get(config);
     }
 
-    public async Task<Response<FileConfiguration>> Get()
+    public async Task<FileConfiguration?> GetAsync(CancellationToken cancellationToken = default)
     {
-        var config = _cache.Get(_configurationKey, _configurationKey);
+        var config = _cache.Get(_configurationKey, _configurationKey); // TODO Region is a key?
         if (config != null)
-        {
-            return new OkResponse<FileConfiguration>(config);
-        }
+            return config;
 
-        var queryResult = await _consul.KV.Get(_configurationKey);
+        var queryResult = await _consul.KV.Get(_configurationKey, cancellationToken);
         if (queryResult.Response == null)
         {
-            return new OkResponse<FileConfiguration>(null);
+            // TODO Add a warning or return empty config obj?
+            return null;
         }
 
         var bytes = queryResult.Response.Value;
         var json = Encoding.UTF8.GetString(bytes);
         var consulConfig = JsonConvert.DeserializeObject<FileConfiguration>(json);
-
-        return new OkResponse<FileConfiguration>(consulConfig);
+        return consulConfig;
     }
 
-    public async Task<Response> Set(FileConfiguration ocelotConfiguration)
+    public async Task SetAsync(FileConfiguration configuration, CancellationToken cancellationToken = default)
     {
-        var json = JsonConvert.SerializeObject(ocelotConfiguration, Formatting.Indented);
+        var json = JsonConvert.SerializeObject(configuration, Formatting.Indented);
         var bytes = Encoding.UTF8.GetBytes(json);
         var kvPair = new KVPair(_configurationKey)
         {
             Value = bytes,
         };
 
-        var result = await _consul.KV.Put(kvPair);
+        var result = await _consul.KV.Put(kvPair, cancellationToken);
         if (result.Response)
         {
-            _cache.AddOrUpdate(_configurationKey, ocelotConfiguration, _configurationKey, TimeSpan.FromSeconds(3));
-            return new OkResponse();
+            _cache.AddOrUpdate(_configurationKey, configuration, _configurationKey, TimeSpan.FromSeconds(3)); // TODO Need TTL config option
+            return;
         }
 
-        return new ErrorResponse(new UnableToSetConfigInConsulError(
-            $"Unable to set {nameof(FileConfiguration)} in {nameof(Consul)}, response status code from {nameof(Consul)} was {result.StatusCode}"));
+        // Unhappy path
+        throw new ConsulConfigurationRepositoryException(
+            $"Unable to set {nameof(FileConfiguration)} in {nameof(Consul)}, response status code from {nameof(Consul)} was {result.StatusCode}.");
+    }
+
+    public FileConfiguration Get()
+    {
+        throw new NotImplementedException();
+    }
+
+    public void Set(FileConfiguration configuration)
+    {
+        throw new NotImplementedException();
     }
 }

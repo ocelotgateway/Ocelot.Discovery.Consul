@@ -2,10 +2,10 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
-using Ocelot.AcceptanceTests.RateLimiting;
 using Ocelot.Cache;
 using Ocelot.Configuration.File;
 using Ocelot.DependencyInjection;
+using Ocelot.Testing.Steps;
 using System.Net;
 using System.Text;
 using TestStack.BDDfy;
@@ -15,12 +15,7 @@ namespace Ocelot.Discovery.Consul.Acceptance;
 public sealed class ConsulConfigurationInConsulTests : RateLimitingSteps
 {
     private FileConfiguration _config;
-    private readonly List<ServiceEntry> _consulServices;
-
-    public ConsulConfigurationInConsulTests()
-    {
-        _consulServices = new List<ServiceEntry>();
-    }
+    private readonly List<ServiceEntry> _consulServices = [];
 
     [Fact]
     public void Should_return_response_200_with_simple_url()
@@ -129,7 +124,7 @@ public sealed class ConsulConfigurationInConsulTests : RateLimitingSteps
     }
 
     [Fact]
-    public void Should_load_configuration_out_of_consul_if_it_is_changed()
+    public async Task Should_load_configuration_out_of_consul_if_it_is_changed()
     {
         var consulPort = PortFinder.GetRandomPort();
         var servicePort = PortFinder.GetRandomPort();
@@ -143,6 +138,7 @@ public sealed class ConsulConfigurationInConsulTests : RateLimitingSteps
                     Scheme = "http",
                     Host = "localhost",
                     Port = consulPort,
+                    Type = nameof(Consul),
                 },
             },
         };
@@ -208,7 +204,7 @@ public sealed class ConsulConfigurationInConsulTests : RateLimitingSteps
             },
         };
 
-        this.Given(x => GivenTheConsulConfigurationIs(consulConfig))
+        /*this.Given(x => GivenTheConsulConfigurationIs(consulConfig))
             .And(x => GivenThereIsAFakeConsulServiceDiscoveryProvider(consulPort, string.Empty))
             .And(x => x.GivenThereIsAServiceRunningOn(servicePort, "/status", HttpStatusCode.OK, "Hello from Laura"))
             .And(x => GivenThereIsAConfiguration(configuration))
@@ -218,7 +214,17 @@ public sealed class ConsulConfigurationInConsulTests : RateLimitingSteps
             .And(x => ThenTheResponseBodyShouldBe("Hello from Laura"))
             .When(x => GivenTheConsulConfigurationIs(secondConsulConfig))
             .Then(x => ThenTheConfigIsUpdatedInOcelot())
-            .BDDfy();
+            .BDDfy();*/
+        GivenTheConsulConfigurationIs(consulConfig);
+        GivenThereIsAFakeConsulServiceDiscoveryProvider(consulPort, string.Empty);
+        GivenThereIsAServiceRunningOn(servicePort, "/status", HttpStatusCode.OK, "Hello from Laura");
+        GivenThereIsAConfiguration(configuration);
+        await GivenOcelotIsRunningUsingConsulToStoreConfig();
+        await WhenIGetUrlOnTheApiGateway("/cs/status");
+        ThenTheStatusCodeShouldBe(HttpStatusCode.OK);
+        ThenTheResponseBodyShouldBe("Hello from Laura");
+        GivenTheConsulConfigurationIs(secondConsulConfig);
+        await ThenTheConfigIsUpdatedInOcelot();
     }
 
     [Fact]
@@ -340,7 +346,7 @@ public sealed class ConsulConfigurationInConsulTests : RateLimitingSteps
         static void WithConsulToStoreConfig(IServiceCollection services)
             => services.AddOcelot().AddConsul().AddConfigStoredInConsul();
         GivenOcelotIsRunning(WithConsulToStoreConfig);
-        return Task.Delay(1000);
+        return Task.Delay(1250);
     }
 
     private void GivenThereIsAFakeConsulServiceDiscoveryProvider(int port, string serviceName)

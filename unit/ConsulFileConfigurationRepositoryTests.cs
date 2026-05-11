@@ -4,12 +4,11 @@ using Newtonsoft.Json;
 using Ocelot.Cache;
 using Ocelot.Configuration.File;
 using Ocelot.Logging;
-using Ocelot.Responses;
 using System.Text;
 
 namespace Ocelot.Discovery.Consul.UnitTests;
 
-public class ConsulFileConfigurationRepositoryTests : UnitTest
+public class ConsulFileConfigurationRepositoryTests : Unit
 {
     private ConsulFileConfigurationRepository _repo;
     private readonly Mock<IOptions<FileConfiguration>> _options;
@@ -19,7 +18,7 @@ public class ConsulFileConfigurationRepositoryTests : UnitTest
     private readonly Mock<IConsulClient> _client;
     private readonly Mock<IKVEndpoint> _kvEndpoint;
     private FileConfiguration _fileConfiguration;
-    private Response<FileConfiguration> _getResult;
+    private FileConfiguration _getResult;
 
     public ConsulFileConfigurationRepositoryTests()
     {
@@ -40,6 +39,7 @@ public class ConsulFileConfigurationRepositoryTests : UnitTest
             .SetupGet(x => x.Value)
             .Returns(() => _fileConfiguration);
     }
+    private static CancellationToken CancelMe => TestContext.Current.CancellationToken;
 
     [Fact]
     public async Task Should_set_config()
@@ -49,7 +49,7 @@ public class ConsulFileConfigurationRepositoryTests : UnitTest
         GivenWritingToConsulSucceeds();
 
         // Act
-        _ = await _repo.Set(config);
+        await _repo.SetAsync(config, CancelMe);
 
         // Assert
         ThenTheConfigurationIsStoredAs(config);
@@ -63,7 +63,7 @@ public class ConsulFileConfigurationRepositoryTests : UnitTest
         GivenFetchFromConsulSucceeds();
 
         // Act
-        _getResult = await _repo.Get();
+        _getResult = await _repo.GetAsync(CancelMe);
 
         // Assert
         ThenTheConfigurationIs(config);
@@ -77,10 +77,10 @@ public class ConsulFileConfigurationRepositoryTests : UnitTest
         GivenFetchFromConsulReturnsNull();
 
         // Act
-        _getResult = await _repo.Get();
+        _getResult = await _repo.GetAsync(CancelMe);
 
         // Assert
-        _getResult.Data.ShouldBeNull();
+        Assert.Null(_getResult);
     }
 
     [Fact]
@@ -91,7 +91,7 @@ public class ConsulFileConfigurationRepositoryTests : UnitTest
         GivenFetchFromCacheSucceeds();
 
         // Act
-        _getResult = await _repo.Get();
+        _getResult = await _repo.GetAsync(CancelMe);
 
         // Assert
         ThenTheConfigurationIs(config);
@@ -106,7 +106,7 @@ public class ConsulFileConfigurationRepositoryTests : UnitTest
         GivenFetchFromConsulSucceeds();
 
         // Act
-        _getResult = await _repo.Get();
+        _getResult = await _repo.GetAsync(CancelMe);
 
         // Assert
         ThenTheConfigKeyIs("Tom");
@@ -120,7 +120,7 @@ public class ConsulFileConfigurationRepositoryTests : UnitTest
         GivenFetchFromConsulSucceeds();
 
         // Act
-        _getResult = await _repo.Get();
+        _getResult = await _repo.GetAsync(CancelMe);
 
         // Assert
         ThenTheConfigKeyIs("InternalConfiguration");
@@ -140,8 +140,8 @@ public class ConsulFileConfigurationRepositoryTests : UnitTest
     private void ThenTheConfigurationIs(FileConfiguration config)
     {
         var expected = JsonConvert.SerializeObject(config, Formatting.Indented);
-        var result = JsonConvert.SerializeObject(_getResult.Data, Formatting.Indented);
-        result.ShouldBe(expected);
+        var result = JsonConvert.SerializeObject(_getResult, Formatting.Indented);
+        Assert.Equal(expected, result);
     }
 
     private void GivenWritingToConsulSucceeds()

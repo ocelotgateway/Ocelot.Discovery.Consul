@@ -8,7 +8,7 @@ using System.Reflection;
 
 namespace Ocelot.Discovery.Consul.UnitTests;
 
-public class OcelotBuilderExtensionsTests : UnitTest
+public class OcelotBuilderExtensionsTests : Unit
 {
     private readonly IServiceCollection _services;
     private readonly IConfiguration _configRoot;
@@ -25,7 +25,7 @@ public class OcelotBuilderExtensionsTests : UnitTest
     {
         var environment = new Mock<IWebHostEnvironment>();
         environment.Setup(e => e.ApplicationName)
-            .Returns(typeof(OcelotBuilderExtensionsTests).GetTypeInfo().Assembly.GetName().Name);
+            .Returns(typeof(OcelotBuilderExtensionsTests).GetTypeInfo().Assembly.GetName().Name ?? string.Empty);
         return environment.Object;
     }
 
@@ -37,7 +37,7 @@ public class OcelotBuilderExtensionsTests : UnitTest
             .AddConsul();
 
         // Assert
-        builder.ShouldNotBeNull();
+        Assert.NotNull(builder);
     }
 
     [Fact]
@@ -49,7 +49,7 @@ public class OcelotBuilderExtensionsTests : UnitTest
             .AddConfigStoredInConsul();
 
         // Assert
-        builder.ShouldNotBeNull();
+        Assert.NotNull(builder);
     }
 
     [Fact]
@@ -61,8 +61,9 @@ public class OcelotBuilderExtensionsTests : UnitTest
             .AddConsul<FakeConsulServiceBuilder>();
 
         // Assert
-        builder.ShouldNotBeNull();
-        builder.Services.SingleOrDefault(s => s.ServiceType == typeof(IConsulServiceBuilder)).ShouldNotBeNull();
+        Assert.NotNull(builder);
+        var service = Assert.Single(builder.Services, s => s.ServiceType == typeof(IConsulServiceBuilder));
+        Assert.NotNull(service);
     }
 }
 

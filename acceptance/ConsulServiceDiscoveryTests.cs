@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
-using Ocelot.AcceptanceTests.LoadBalancer;
 using Ocelot.Configuration;
 using Ocelot.Configuration.File;
 using Ocelot.DependencyInjection;
@@ -366,7 +365,7 @@ public sealed partial class ConsulServiceDiscoveryTests : DiscoverySteps, IDispo
     {
         //lock (LoadBalancerHouse.SyncRoot) // Note, synch locking is implemented in LoadBalancerHouse
         int index = Array.IndexOf(Bug2119ServiceNames, route.ServiceName); // LoadBalancerHouse should return different balancers for different service names
-        _lbAnalyzers[index] ??= new TLoadBalancerCreator().Create(route, provider)?.Data;
+        _lbAnalyzers[index] ??= new TLoadBalancerCreator().Create(route, provider).Data;
         return (TLoadBalancer)_lbAnalyzers[index];
     }
 
@@ -584,7 +583,7 @@ public sealed partial class ConsulServiceDiscoveryTests : DiscoverySteps, IDispo
             Address = address ?? "localhost",
             Port = port,
             ID = id ?? Guid.NewGuid().ToString(),
-            Tags = tags ?? Array.Empty<string>(),
+            Tags = tags ?? [],
         },
     };
 
@@ -612,7 +611,7 @@ public sealed partial class ConsulServiceDiscoveryTests : DiscoverySteps, IDispo
             Scheme = Uri.UriSchemeHttp,
             Host = "localhost",
             Port = consulPort,
-            Type = nameof(Provider.Consul.Consul),
+            Type = nameof(Consul),
         };
         return config;
     }

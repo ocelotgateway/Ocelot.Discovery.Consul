@@ -26,7 +26,7 @@ public static class OcelotBuilderExtensions
             .AddSingleton<IConsulClientFactory, ConsulClientFactory>()
             .AddScoped<IConsulServiceBuilder, DefaultConsulServiceBuilder>()
             .RemoveAll(typeof(IFileConfigurationPollerOptions))
-            .AddSingleton<IFileConfigurationPollerOptions, ConsulFileConfigurationPollerOption>();
+            .AddSingleton<IFileConfigurationPollerOptions, ConsulFileConfigurationPollerOptions>();
         return builder;
     }
 

@@ -7,7 +7,7 @@ using Ocelot.ServiceDiscovery.Providers;
 
 namespace Ocelot.Discovery.Consul.UnitTests;
 
-public sealed class ConsulProviderFactoryTests : UnitTest, IDisposable
+public sealed class ConsulProviderFactoryTests : Unit, IDisposable
 {
     private readonly ServiceProvider _provider;
     private readonly IServiceScope _scope;
@@ -55,7 +55,8 @@ public sealed class ConsulProviderFactoryTests : UnitTest, IDisposable
         var actual = CreateProvider(route, emptyType);
 
         // Assert
-        actual.ShouldNotBeNull().ShouldBeOfType<Provider.Consul.Consul>();
+        Assert.NotNull(actual);
+        Assert.IsType<Consul>(actual);
     }
 
     [Fact]
@@ -66,7 +67,8 @@ public sealed class ConsulProviderFactoryTests : UnitTest, IDisposable
         var actual = CreateProvider(route, nameof(PollConsul));
 
         // Assert
-        actual.ShouldNotBeNull().ShouldBeOfType<PollConsul>();
+        Assert.NotNull(actual);
+        Assert.IsType<PollConsul>(actual);
     }
 
     [Fact]
@@ -81,12 +83,14 @@ public sealed class ConsulProviderFactoryTests : UnitTest, IDisposable
         var actual2 = CreateProvider(route2);
 
         // Assert
-        actual1.ShouldNotBeNull().ShouldBeOfType<PollConsul>();
-        actual2.ShouldNotBeNull().ShouldBeOfType<PollConsul>();
-        actual1.ShouldBeEquivalentTo(actual2);
-        var provider1 = actual1 as PollConsul;
-        var provider2 = actual2 as PollConsul;
-        provider1.ServiceName.ShouldBeEquivalentTo(provider2.ServiceName);
+        Assert.NotNull(actual1);
+        var provider1 = Assert.IsType<PollConsul>(actual1);
+
+        Assert.NotNull(actual2);
+        var provider2 = Assert.IsType<PollConsul>(actual2);
+
+        Assert.Same(actual1, actual2);
+        Assert.Equal(provider1.ServiceName, provider2.ServiceName);
     }
 
     [Fact]
@@ -98,26 +102,24 @@ public sealed class ConsulProviderFactoryTests : UnitTest, IDisposable
         foreach (var serviceName in serviceNames)
         {
             var currentProvider = DummyPollingConsulServiceFactory(serviceName);
-            providersList.ShouldContain(currentProvider);
+            Assert.Contains(currentProvider, providersList);
         }
 
         var convertedProvidersList = providersList.Select(x => x as PollConsul).ToList();
-        convertedProvidersList.ForEach(x => x.ShouldNotBeNull());
+        convertedProvidersList.ForEach(Assert.NotNull);
 
         foreach (var serviceName in serviceNames)
         {
             var cProvider = DummyPollingConsulServiceFactory(serviceName);
             var convertedCProvider = cProvider as PollConsul;
-            convertedCProvider.ShouldNotBeNull();
+            Assert.NotNull(convertedCProvider);
 
             var matchingProviders = convertedProvidersList
-                .Where(x => x.ServiceName == convertedCProvider.ServiceName)
+                .Where(x => x?.ServiceName == convertedCProvider.ServiceName)
                 .ToList();
-            matchingProviders.ShouldHaveSingleItem();
-
-            matchingProviders.First()
-                .ShouldNotBeNull()
-                .ServiceName.ShouldBeEquivalentTo(convertedCProvider.ServiceName);
+            var first = Assert.Single(matchingProviders);
+            Assert.NotNull(first);
+            Assert.Equal(convertedCProvider.ServiceName, first.ServiceName);
         }
     }
 
@@ -129,11 +131,8 @@ public sealed class ConsulProviderFactoryTests : UnitTest, IDisposable
         var route = GivenRoute(string.Empty);
         _context.RequestServices = _provider; // given service provider is root provider
 
-        // Act
-        Func<IServiceDiscoveryProvider> consulProviderFactoryCall = () => CreateProvider(route);
-
-        // Assert
-        consulProviderFactoryCall.ShouldThrow<InvalidOperationException>();
+        // Act & Assert
+        Assert.Throws<InvalidOperationException>(() => CreateProvider(route));
     }
 
     private IServiceDiscoveryProvider DummyPollingConsulServiceFactory(string serviceName) => CreateProvider(GivenRoute(serviceName));

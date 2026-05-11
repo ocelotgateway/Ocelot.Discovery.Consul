@@ -1,7 +1,6 @@
 ﻿using Ocelot.Configuration;
 using Ocelot.Configuration.File;
 using Ocelot.Configuration.Repository;
-using Ocelot.Responses;
 
 namespace Ocelot.Discovery.Consul.UnitTests;
 
@@ -108,19 +107,18 @@ public class ServiceDiscoveryFileConfigurationPollerOptionsTests
     }
 
     [Fact]
-    public void Delay_ShouldReturnDefaultValue_WhenFileConfigIsError()
+    public void Delay_ShouldReturnDefaultValue_WhenFileConfigIsNull()
     {
         // Arrange
-        var err = new UnableToSetConfigInConsulError("Error message");
-        var fileConfigResponse = new ErrorResponse<FileConfiguration>(err);
+        FileConfiguration configuration = null;
         _mockFileConfigurationRepository
             .Setup(x => x.Get())
-            .ReturnsAsync(fileConfigResponse);
+            .Returns(configuration);
 
         IInternalConfiguration internalConfiguration = null;
         _mockInternalConfigRepo
             .Setup(x => x.Get())
-            .Returns(internalConfiguration);
+            .Returns(internalConfiguration!);
 
         // Act
         var delay = _sut.Delay();
@@ -211,7 +209,7 @@ public class ServiceDiscoveryFileConfigurationPollerOptionsTests
     }
 
     [Fact]
-    public void Delay_ShouldReturnDefaultValue_WhenInternalConfigIsError()
+    public void Delay_ShouldReturnDefaultValue_WhenInternalConfigIsNull()
     {
         // Arrange
         FileConfiguration configuration = null;
@@ -219,11 +217,10 @@ public class ServiceDiscoveryFileConfigurationPollerOptionsTests
             .Setup(x => x.Get())
             .Returns(configuration);
 
-        var err = new UnableToSetConfigInConsulError("Error message");
-        var internalConfigResponse = new ErrorResponse<IInternalConfiguration>(err);
+        IInternalConfiguration iConfiguration = null;
         _mockInternalConfigRepo
             .Setup(x => x.Get())
-            .Returns(internalConfigResponse);
+            .Returns(iConfiguration);
 
         // Act
         var delay = _sut.Delay();
@@ -359,7 +356,7 @@ public class ServiceDiscoveryFileConfigurationPollerOptionsTests
             .Returns(internalConfiguration);
 
         // Act
-        var delay = _sut.Delay;
+        var delay = _sut.Delay();
 
         // Assert
         _mockInternalConfigRepo.Verify(x => x.Get(), Times.Once);

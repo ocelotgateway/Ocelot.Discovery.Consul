@@ -7,31 +7,36 @@ namespace Ocelot.Discovery.Consul;
 
 public class DefaultConsulServiceBuilder : IConsulServiceBuilder
 {
-    private readonly HttpContext _context;
-    private readonly IConsulClientFactory _clientFactory;
-    private readonly IOcelotLoggerFactory _loggerFactory;
+    private readonly HttpContext? _context;
+    //private readonly IConsulClientFactory _clientFactory;
+    //private readonly IOcelotLoggerFactory _loggerFactory;
 
-    private ConsulRegistryConfiguration _configuration;
-    private IConsulClient _client;
-    private IOcelotLogger _logger;
+    private ConsulRegistryConfiguration? _configuration;
+    private readonly IConsulClient _client;
+    private readonly IOcelotLogger _logger;
 
     public DefaultConsulServiceBuilder(
-        IHttpContextAccessor contextAccessor,
-        IConsulClientFactory clientFactory,
-        IOcelotLoggerFactory loggerFactory)
+        IHttpContextAccessor? contextAccessor,
+        IConsulClientFactory? clientFactory,
+        IOcelotLoggerFactory? loggerFactory)
     {
+        ArgumentNullException.ThrowIfNull(contextAccessor);
         _context = contextAccessor.HttpContext;
-        _clientFactory = clientFactory;
-        _loggerFactory = loggerFactory;
+
+        ArgumentNullException.ThrowIfNull(clientFactory);
+        _client = clientFactory.Get(Configuration);
+
+        ArgumentNullException.ThrowIfNull(loggerFactory);
+        _logger = loggerFactory.CreateLogger<DefaultConsulServiceBuilder>();
     }
 
     // TODO See comment in the interface about the privacy. The goal is to eliminate IBC!
     // So, we need more abstract type, and ServiceProviderConfiguration is a good choice. The rest of props can be obtained from HttpContext
-    protected /*public*/ ConsulRegistryConfiguration Configuration => _configuration
-        ??= _context.Items.TryGetValue(nameof(ConsulRegistryConfiguration), out var value)
-            ? value as ConsulRegistryConfiguration : default;
-    protected IConsulClient Client => _client ??= _clientFactory.Get(Configuration);
-    protected IOcelotLogger Logger => _logger ??= _loggerFactory.CreateLogger<DefaultConsulServiceBuilder>();
+    protected ConsulRegistryConfiguration Configuration => _configuration
+        ??= _context?.Items.TryGetValue(nameof(ConsulRegistryConfiguration), out var value) == true
+            ? (value as ConsulRegistryConfiguration) ?? new() : new();
+    protected IConsulClient Client => _client;
+    protected IOcelotLogger Logger => _logger;
 
     public virtual bool IsValid(ServiceEntry entry)
     {

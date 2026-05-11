@@ -1,11 +1,10 @@
-﻿using Ocelot.Infrastructure;
-using Ocelot.Logging;
+﻿using Ocelot.Logging;
 using Ocelot.ServiceDiscovery.Providers;
 using Ocelot.Values;
 
 namespace Ocelot.Discovery.Consul.UnitTests;
 
-public class PollingConsulServiceDiscoveryProviderTests : UnitTest
+public class PollingConsulServiceDiscoveryProviderTests : Unit
 {
     private readonly int _delay;
     private readonly List<Service> _services;
@@ -35,7 +34,7 @@ public class PollingConsulServiceDiscoveryProviderTests : UnitTest
         WhenIGetTheServices(1);
 
         // Assert
-        _result.Count.ShouldBe(1);
+        Assert.Single(_result);
     }
 
     [Fact]
@@ -49,7 +48,7 @@ public class PollingConsulServiceDiscoveryProviderTests : UnitTest
         await WhenIGetTheServicesWithoutDelay(1);
 
         // Assert
-        _result.Count.ShouldBe(1);
+        Assert.Single(_result);
     }
 
     private void GivenConsulReturns(Service service)
@@ -73,7 +72,7 @@ public class PollingConsulServiceDiscoveryProviderTests : UnitTest
                 return false;
             }
         });
-        result.ShouldBeTrue();
+        Assert.True(result);
     }
 
     private async Task WhenIGetTheServicesWithoutDelay(int expected)
@@ -90,6 +89,6 @@ public class PollingConsulServiceDiscoveryProviderTests : UnitTest
             result = false;
         }
 
-        result.ShouldBeTrue();
+        Assert.True(result);
     }
 }

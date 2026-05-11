@@ -10,7 +10,9 @@ public class ConsulRegistryConfiguration // TODO Inherit from ServiceProviderCon
     /// </summary>
     public const int DefaultHttpPort = 8500;
 
-    public ConsulRegistryConfiguration(string scheme, string host, int port, string keyOfServiceInConsul, string token)
+    public ConsulRegistryConfiguration() { }
+
+    public ConsulRegistryConfiguration(string? scheme, string? host, int port, string? keyOfServiceInConsul, string? token)
     {
         // TODO Why not to encapsulate this biz logic right in ConsulProviderFactory? LoL
         Host = string.IsNullOrEmpty(host) ? "localhost" : host;
@@ -20,9 +22,9 @@ public class ConsulRegistryConfiguration // TODO Inherit from ServiceProviderCon
         Token = token;
     }
 
-    public string KeyOfServiceInConsul { get; }
-    public string Scheme { get; }
-    public string Host { get; }
+    public string? KeyOfServiceInConsul { get; }
+    public string? Scheme { get; }
+    public string? Host { get; }
     public int Port { get; }
-    public string Token { get; }
+    public string? Token { get; }
 }
