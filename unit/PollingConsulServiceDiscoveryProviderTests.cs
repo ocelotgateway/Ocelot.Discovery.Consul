@@ -4,7 +4,7 @@ using Ocelot.Values;
 
 namespace Ocelot.Discovery.Consul.UnitTests;
 
-public class PollingConsulServiceDiscoveryProviderTests : Unit
+public class PollingConsulServiceDiscoveryProviderTests : UnitTest
 {
     private readonly int _delay;
     private readonly List<Service> _services;
@@ -15,7 +15,7 @@ public class PollingConsulServiceDiscoveryProviderTests : Unit
 
     public PollingConsulServiceDiscoveryProviderTests()
     {
-        _services = new List<Service>();
+        _services = [];
         _delay = 1;
         _factory = new Mock<IOcelotLoggerFactory>();
         _logger = new Mock<IOcelotLogger>();
@@ -27,7 +27,7 @@ public class PollingConsulServiceDiscoveryProviderTests : Unit
     public void Should_return_service_from_consul()
     {
         // Arrange
-        var service = new Service(string.Empty, new ServiceHostAndPort(string.Empty, 0), string.Empty, string.Empty, new List<string>());
+        var service = new Service(string.Empty, new ServiceHostAndPort(string.Empty, 0), string.Empty, string.Empty, []);
         GivenConsulReturns(service);
 
         // Act
@@ -41,7 +41,7 @@ public class PollingConsulServiceDiscoveryProviderTests : Unit
     public async Task Should_return_service_from_consul_without_delay()
     {
         // Arrange
-        var service = new Service(string.Empty, new ServiceHostAndPort(string.Empty, 0), string.Empty, string.Empty, new List<string>());
+        var service = new Service(string.Empty, new ServiceHostAndPort(string.Empty, 0), string.Empty, string.Empty, []);
         GivenConsulReturns(service);
 
         // Act

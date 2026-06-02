@@ -7,7 +7,7 @@ using Ocelot.ServiceDiscovery.Providers;
 
 namespace Ocelot.Discovery.Consul.UnitTests;
 
-public sealed class ConsulProviderFactoryTests : Unit, IDisposable
+public sealed class ConsulProviderFactoryTests : UnitTest, IDisposable
 {
     private readonly ServiceProvider _provider;
     private readonly IServiceScope _scope;
@@ -96,7 +96,7 @@ public sealed class ConsulProviderFactoryTests : Unit, IDisposable
     [Fact]
     public void Get_MultipleServiceNames_ShouldReturnProviderAccordingToServiceName()
     {
-        string[] serviceNames = new[] { "service1", "service2", "service3", "service4" };
+        string[] serviceNames = ["service1", "service2", "service3", "service4"];
         var providersList = serviceNames.Select(DummyPollingConsulServiceFactory).ToList();
 
         foreach (var serviceName in serviceNames)

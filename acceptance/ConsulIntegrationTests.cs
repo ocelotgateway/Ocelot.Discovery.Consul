@@ -58,7 +58,7 @@ public class ConsulIntegrationTests : AcceptanceSteps
         GivenThereIsAFakeConsulServiceDiscoveryProvider();
 
         // Act
-        var actual = await _provider.GetAsync();
+        var actual = await _provider.GetAsync(); // TODO Need CancellationToken
 
         // Assert
         actual.ShouldNotBeNull().Count.ShouldBe(1);
@@ -187,7 +187,7 @@ public class ConsulIntegrationTests : AcceptanceSteps
 
                 var json = JsonConvert.SerializeObject(_consulServiceEntries);
                 context.Response.Headers.Append("Content-Type", "application/json");
-                await context.Response.WriteAsync(json);
+                await context.Response.WriteAsync(json, context.RequestAborted);
             }
         });
     }

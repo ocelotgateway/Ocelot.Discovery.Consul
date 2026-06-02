@@ -8,7 +8,7 @@ using System.Text;
 
 namespace Ocelot.Discovery.Consul.UnitTests;
 
-public class ConsulFileConfigurationRepositoryTests : Unit
+public class ConsulFileConfigurationRepositoryTests : UnitTest
 {
     private ConsulFileConfigurationRepository _repo;
     private readonly Mock<IOptions<FileConfiguration>> _options;
@@ -39,7 +39,6 @@ public class ConsulFileConfigurationRepositoryTests : Unit
             .SetupGet(x => x.Value)
             .Returns(() => _fileConfiguration);
     }
-    private static CancellationToken CancelMe => TestContext.Current.CancellationToken;
 
     [Fact]
     public async Task Should_set_config()
@@ -194,10 +193,7 @@ public class ConsulFileConfigurationRepositoryTests : Unit
         {
             new()
             {
-                DownstreamHostAndPorts = new List<FileHostAndPort>
-                {
-                    new("123.12.12.12", 80),
-                },
+                DownstreamHostAndPorts = [ new("123.12.12.12", 80) ],
                 DownstreamScheme = Uri.UriSchemeHttps,
                 DownstreamPathTemplate = "/asdfs/test/{test}",
             },

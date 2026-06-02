@@ -8,14 +8,14 @@ using System.Reflection;
 
 namespace Ocelot.Discovery.Consul.UnitTests;
 
-public class OcelotBuilderExtensionsTests : Unit
+public class OcelotBuilderExtensionsTests : UnitTest
 {
     private readonly IServiceCollection _services;
     private readonly IConfiguration _configRoot;
 
     public OcelotBuilderExtensionsTests()
     {
-        _configRoot = new ConfigurationRoot(new List<IConfigurationProvider>());
+        _configRoot = new ConfigurationRoot([]);
         _services = new ServiceCollection();
         _services.AddSingleton(GetHostingEnvironment());
         _services.AddSingleton(_configRoot);

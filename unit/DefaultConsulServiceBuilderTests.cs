@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 
 namespace Ocelot.Discovery.Consul.UnitTests;
 
-public sealed class DefaultConsulServiceBuilderTests : Unit
+public sealed class DefaultConsulServiceBuilderTests : UnitTest
 {
     private DefaultConsulServiceBuilder sut;
     private readonly Mock<IHttpContextAccessor> contextAccessor;

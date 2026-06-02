@@ -10,10 +10,7 @@ public sealed class ConsulTwoDownstreamServicesTests : AcceptanceSteps
 {
     private readonly List<ServiceEntry> _serviceEntries;
 
-    public ConsulTwoDownstreamServicesTests()
-    {
-        _serviceEntries = new List<ServiceEntry>();
-    }
+    public ConsulTwoDownstreamServicesTests() => _serviceEntries = [];
 
     [Fact]
     [Trait("Bug", "194")] // https://github.com/ThreeMammals/Ocelot/issues/194
@@ -53,9 +50,9 @@ public sealed class ConsulTwoDownstreamServicesTests : AcceptanceSteps
             {
                 var json = JsonConvert.SerializeObject(_serviceEntries);
                 context.Response.Headers.Append("Content-Type", "application/json");
-                return context.Response.WriteAsync(json);
+                return context.Response.WriteAsync(json, context.RequestAborted);
             }
-            return context.Response.WriteAsync(string.Empty);
+            return context.Response.WriteAsync(string.Empty, context.RequestAborted);
         });
     }
 
@@ -66,7 +63,7 @@ public sealed class ConsulTwoDownstreamServicesTests : AcceptanceSteps
             var downstreamPath = !string.IsNullOrEmpty(context.Request.PathBase.Value) ? context.Request.PathBase.Value : context.Request.Path.Value;
             bool oK = downstreamPath == basePath;
             context.Response.StatusCode = oK ? (int)statusCode : (int)HttpStatusCode.NotFound;
-            return context.Response.WriteAsync(oK ? responseBody : "downstream path didn't match base path");
+            return context.Response.WriteAsync(oK ? responseBody : "downstream path didn't match base path", context.RequestAborted);
         });
     }
 }

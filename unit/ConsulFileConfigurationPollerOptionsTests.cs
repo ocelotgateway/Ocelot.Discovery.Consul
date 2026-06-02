@@ -4,7 +4,7 @@ using Ocelot.Configuration.Repository;
 
 namespace Ocelot.Discovery.Consul.UnitTests;
 
-public class ServiceDiscoveryFileConfigurationPollerOptionsTests
+public class ServiceDiscoveryFileConfigurationPollerOptionsTests : UnitTest
 {
     private readonly Mock<IInternalConfigurationRepository> _mockInternalConfigRepo = new();
     private readonly Mock<IFileConfigurationRepository> _mockFileConfigurationRepository = new();

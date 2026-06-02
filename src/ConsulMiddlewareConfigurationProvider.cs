@@ -25,14 +25,14 @@ public static class ConsulMiddlewareConfigurationProvider
 
         if (UsingConsul(fileConfigRepo))
         {
-            await SetFileConfigInConsul(builder, fileConfigRepo, fileConfig, internalConfigCreator, internalConfigRepo);
+            await SetFileConfigInConsul(fileConfigRepo, fileConfig, internalConfigCreator, internalConfigRepo);
         }
     }
 
     private static bool UsingConsul(IFileConfigurationRepository repo)
         => repo.GetType() == typeof(ConsulFileConfigurationRepository);
 
-    private static async Task SetFileConfigInConsul(IApplicationBuilder builder,
+    private static async Task SetFileConfigInConsul(
         IFileConfigurationRepository repository, IOptionsMonitor<FileConfiguration> options,
         IInternalConfigurationCreator creator, IInternalConfigurationRepository internalRepo)
     {

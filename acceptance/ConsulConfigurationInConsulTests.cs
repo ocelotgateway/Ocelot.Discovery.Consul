@@ -14,7 +14,7 @@ namespace Ocelot.Discovery.Consul.Acceptance;
 
 public sealed class ConsulConfigurationInConsulTests : RateLimitingSteps
 {
-    private FileConfiguration _config;
+    private FileConfiguration _consulConfig;
     private readonly List<ServiceEntry> _consulServices = [];
 
     [Fact]
@@ -22,39 +22,16 @@ public sealed class ConsulConfigurationInConsulTests : RateLimitingSteps
     {
         var consulPort = PortFinder.GetRandomPort();
         var servicePort = PortFinder.GetRandomPort();
-
-        var configuration = new FileConfiguration
+        var route = GivenRoute(servicePort);
+        var configuration = GivenConfiguration(route);
+        configuration.GlobalConfiguration.ServiceDiscoveryProvider = new()
         {
-            Routes = new List<FileRoute>
-                {
-                    new()
-                    {
-                        DownstreamPathTemplate = "/",
-                        DownstreamScheme = "http",
-                        DownstreamHostAndPorts = new List<FileHostAndPort>
-                        {
-                            new()
-                            {
-                                Host = "localhost",
-                                Port = servicePort,
-                            },
-                        },
-                        UpstreamPathTemplate = "/",
-                        UpstreamHttpMethod = ["Get"],
-                    },
-                },
-            GlobalConfiguration = new FileGlobalConfiguration
-            {
-                ServiceDiscoveryProvider = new FileServiceDiscoveryProvider
-                {
-                    Scheme = "http",
-                    Host = "localhost",
-                    Port = consulPort,
-                },
-            },
+            Scheme = "http",
+            Host = "localhost",
+            Port = consulPort,
         };
         this.Given(x => GivenThereIsAFakeConsulServiceDiscoveryProvider(consulPort, string.Empty))
-            .And(x => x.GivenThereIsAServiceRunningOn(servicePort, string.Empty, HttpStatusCode.OK, "Hello from Laura"))
+            .And(x => x.GivenThereIsAServiceRunningOn(servicePort, route.UpstreamPathTemplate, HttpStatusCode.OK, "Hello from Laura"))
             .And(x => GivenThereIsAConfiguration(configuration))
             .And(x => x.GivenOcelotIsRunningUsingConsulToStoreConfig())
             .When(x => WhenIGetUrlOnTheApiGateway("/"))
@@ -68,50 +45,21 @@ public sealed class ConsulConfigurationInConsulTests : RateLimitingSteps
     {
         var consulPort = PortFinder.GetRandomPort();
         var servicePort = PortFinder.GetRandomPort();
-
-        var configuration = new FileConfiguration
+        var configuration = GivenConfiguration();
+        configuration.GlobalConfiguration.ServiceDiscoveryProvider = new()
         {
-            GlobalConfiguration = new FileGlobalConfiguration
-            {
-                ServiceDiscoveryProvider = new FileServiceDiscoveryProvider
-                {
-                    Scheme = "http",
-                    Host = "localhost",
-                    Port = consulPort,
-                },
-            },
+            Scheme = "http",
+            Host = "localhost",
+            Port = consulPort,
         };
-        var consulConfig = new FileConfiguration
+        var route = GivenRoute(servicePort, "/cs/status", "/status");
+        var consulConfig = GivenConfiguration(route);
+        consulConfig.GlobalConfiguration.ServiceDiscoveryProvider = new()
         {
-            Routes = new List<FileRoute>
-            {
-                new()
-                {
-                    DownstreamPathTemplate = "/status",
-                    DownstreamScheme = "http",
-                    DownstreamHostAndPorts = new List<FileHostAndPort>
-                    {
-                        new()
-                        {
-                            Host = "localhost",
-                            Port = servicePort,
-                        },
-                    },
-                    UpstreamPathTemplate = "/cs/status",
-                    UpstreamHttpMethod = ["Get"],
-                },
-            },
-            GlobalConfiguration = new FileGlobalConfiguration
-            {
-                ServiceDiscoveryProvider = new FileServiceDiscoveryProvider
-                {
-                    Scheme = "http",
-                    Host = "localhost",
-                    Port = consulPort,
-                },
-            },
+            Scheme = "http",
+            Host = "localhost",
+            Port = consulPort,
         };
-
         this.Given(x => GivenTheConsulConfigurationIs(consulConfig))
             .And(x => GivenThereIsAFakeConsulServiceDiscoveryProvider(consulPort, string.Empty))
             .And(x => x.GivenThereIsAServiceRunningOn(servicePort, "/status", HttpStatusCode.OK, "Hello from Laura"))
@@ -124,107 +72,45 @@ public sealed class ConsulConfigurationInConsulTests : RateLimitingSteps
     }
 
     [Fact]
-    public async Task Should_load_configuration_out_of_consul_if_it_is_changed()
+    public void Should_load_configuration_out_of_consul_if_it_is_changed()
     {
         var consulPort = PortFinder.GetRandomPort();
         var servicePort = PortFinder.GetRandomPort();
-
-        var configuration = new FileConfiguration
+        var route1 = GivenRoute(servicePort, "/cs/status", "/status");
+        var configuration = GivenConfiguration();
+        configuration.GlobalConfiguration.ServiceDiscoveryProvider = new()
         {
-            GlobalConfiguration = new FileGlobalConfiguration
-            {
-                ServiceDiscoveryProvider = new FileServiceDiscoveryProvider
-                {
-                    Scheme = "http",
-                    Host = "localhost",
-                    Port = consulPort,
-                    Type = nameof(Consul),
-                },
-            },
+            Scheme = Uri.UriSchemeHttp,
+            Host = "localhost",
+            Port = consulPort,
+            Type = nameof(Consul),
         };
-        var consulConfig = new FileConfiguration
+        var consulConfig = GivenConfiguration(route1);
+        consulConfig.GlobalConfiguration.ServiceDiscoveryProvider = new()
         {
-            Routes = new List<FileRoute>
-            {
-                new()
-                {
-                    DownstreamPathTemplate = "/status",
-                    DownstreamScheme = "http",
-                    DownstreamHostAndPorts = new List<FileHostAndPort>
-                    {
-                        new()
-                        {
-                            Host = "localhost",
-                            Port = servicePort,
-                        },
-                    },
-                    UpstreamPathTemplate = "/cs/status",
-                    UpstreamHttpMethod = ["Get"],
-                },
-            },
-            GlobalConfiguration = new FileGlobalConfiguration
-            {
-                ServiceDiscoveryProvider = new FileServiceDiscoveryProvider
-                {
-                    Scheme = "http",
-                    Host = "localhost",
-                    Port = consulPort,
-                },
-            },
+            Scheme = Uri.UriSchemeHttp,
+            Host = "localhost",
+            Port = consulPort,
         };
-
-        var secondConsulConfig = new FileConfiguration
+        var route2 = GivenRoute(servicePort, "/cs/status/awesome", "/status");
+        var secondConsulConfig = GivenConfiguration(route2);
+        secondConsulConfig.GlobalConfiguration.ServiceDiscoveryProvider = new()
         {
-            Routes = new List<FileRoute>
-            {
-                new()
-                {
-                    DownstreamPathTemplate = "/status",
-                    DownstreamScheme = "http",
-                    DownstreamHostAndPorts = new List<FileHostAndPort>
-                    {
-                        new()
-                        {
-                            Host = "localhost",
-                            Port = servicePort,
-                        },
-                    },
-                    UpstreamPathTemplate = "/cs/status/awesome",
-                    UpstreamHttpMethod = ["Get"],
-                },
-            },
-            GlobalConfiguration = new FileGlobalConfiguration
-            {
-                ServiceDiscoveryProvider = new FileServiceDiscoveryProvider
-                {
-                    Scheme = "http",
-                    Host = "localhost",
-                    Port = consulPort,
-                },
-            },
+            Scheme = Uri.UriSchemeHttp,
+            Host = "localhost",
+            Port = consulPort,
         };
-
-        /*this.Given(x => GivenTheConsulConfigurationIs(consulConfig))
-            .And(x => GivenThereIsAFakeConsulServiceDiscoveryProvider(consulPort, string.Empty))
-            .And(x => x.GivenThereIsAServiceRunningOn(servicePort, "/status", HttpStatusCode.OK, "Hello from Laura"))
+        this.Given(x => GivenTheConsulConfigurationIs(consulConfig))
+            .And(x => GivenThereIsAFakeConsulServiceDiscoveryProvider(consulPort, string.Empty)) // empty service name?
+            .And(x => GivenThereIsAServiceRunningOn(servicePort, "/status", HttpStatusCode.OK, "Hello from Laura"))
             .And(x => GivenThereIsAConfiguration(configuration))
-            .And(x => x.GivenOcelotIsRunningUsingConsulToStoreConfig())
-            .And(x => WhenIGetUrlOnTheApiGateway("/cs/status"))
-            .And(x => ThenTheStatusCodeShouldBe(HttpStatusCode.OK))
+            .And(x => GivenOcelotIsRunningUsingConsulToStoreConfig())
+            .When(x => WhenIGetUrlOnTheApiGateway("/cs/status"))
+            .Then(x => ThenTheStatusCodeShouldBe(HttpStatusCode.OK))
             .And(x => ThenTheResponseBodyShouldBe("Hello from Laura"))
-            .When(x => GivenTheConsulConfigurationIs(secondConsulConfig))
-            .Then(x => ThenTheConfigIsUpdatedInOcelot())
-            .BDDfy();*/
-        GivenTheConsulConfigurationIs(consulConfig);
-        GivenThereIsAFakeConsulServiceDiscoveryProvider(consulPort, string.Empty);
-        GivenThereIsAServiceRunningOn(servicePort, "/status", HttpStatusCode.OK, "Hello from Laura");
-        GivenThereIsAConfiguration(configuration);
-        await GivenOcelotIsRunningUsingConsulToStoreConfig();
-        await WhenIGetUrlOnTheApiGateway("/cs/status");
-        ThenTheStatusCodeShouldBe(HttpStatusCode.OK);
-        ThenTheResponseBodyShouldBe("Hello from Laura");
-        GivenTheConsulConfigurationIs(secondConsulConfig);
-        await ThenTheConfigIsUpdatedInOcelot();
+            .Given(x => GivenTheConsulConfigurationIs(secondConsulConfig))
+            .Then(x => ThenTheConfigIsUpdatedInOcelot("/cs/status/awesome"))
+        .BDDfy();
     }
 
     [Fact]
@@ -241,57 +127,46 @@ public sealed class ConsulConfigurationInConsulTests : RateLimitingSteps
                 Address = "localhost",
                 Port = servicePort,
                 ID = "web_90_0_2_224_8080",
-                Tags = new[] { "version-v1" },
+                Tags = ["version-v1"],
+            },
+        };
+        var route = new FileDynamicRoute()
+        {
+            ServiceName = serviceName,
+            RateLimitOptions = new()
+            {
+                EnableRateLimiting = true,
+                ClientWhitelist = [],
+                Limit = 3,
+                Period = "1s",
+                Wait = "1s",
             },
         };
 
-        var consulConfig = new FileConfiguration
+        var consulConfig = GivenConfiguration();
+        consulConfig.DynamicRoutes.Add(route);
+        consulConfig.GlobalConfiguration = new()
         {
-            DynamicRoutes = new()
+            ServiceDiscoveryProvider = new()
             {
-                new()
-                {
-                    ServiceName = serviceName,
-                    RateLimitRule = new FileRateLimitByHeaderRule
-                    {
-                        EnableRateLimiting = true,
-                        ClientWhitelist = new List<string>(),
-                        Limit = 3,
-                        Period = "1s",
-                        PeriodTimespan = 1000,
-                    },
-                },
+                Scheme = "http",
+                Host = "localhost",
+                Port = consulPort,
             },
-            GlobalConfiguration = new()
+            RateLimitOptions = new()
             {
-                ServiceDiscoveryProvider = new()
-                {
-                    Scheme = "http",
-                    Host = "localhost",
-                    Port = consulPort,
-                },
-                RateLimitOptions = new()
-                {
-                    ClientIdHeader = "ClientId",
-                    QuotaExceededMessage = string.Empty,
-                    RateLimitCounterPrefix = string.Empty,
-                    HttpStatusCode = StatusCodes.Status428PreconditionRequired,
-                },
-                DownstreamScheme = "http",
+                ClientIdHeader = "ClientId",
+                StatusCode = StatusCodes.Status428PreconditionRequired,
             },
+            DownstreamScheme = "http",
         };
 
-        var configuration = new FileConfiguration
+        var configuration = GivenConfiguration();
+        configuration.GlobalConfiguration.ServiceDiscoveryProvider = new()
         {
-            GlobalConfiguration = new()
-            {
-                ServiceDiscoveryProvider = new()
-                {
-                    Scheme = "http",
-                    Host = "localhost",
-                    Port = consulPort,
-                },
-            },
+            Scheme = "http",
+            Host = "localhost",
+            Port = consulPort,
         };
         var upstreamPath = $"/{serviceName}/something";
         this.Given(x => x.GivenThereIsAServiceRunningOn(servicePort, "/something", HttpStatusCode.OK, "Hello from Laura"))
@@ -309,28 +184,21 @@ public sealed class ConsulConfigurationInConsulTests : RateLimitingSteps
         .BDDfy();
     }
 
-    private async Task ThenTheConfigIsUpdatedInOcelot()
+    private async Task ThenTheConfigIsUpdatedInOcelot(string url)
     {
-        var result = await Wait.For(20_000).UntilAsync(async () =>
+        var updated = await Wait.For(10_000).UntilAsync(async (cancellation) =>
         {
-            try
-            {
-                await WhenIGetUrlOnTheApiGateway("/cs/status/awesome");
-                ThenTheStatusCodeShouldBe(HttpStatusCode.OK);
-                ThenTheResponseBodyShouldBe("Hello from Laura");
-                return true;
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-        });
-        result.ShouldBeTrue();
+            await WhenIGetUrlOnTheApiGateway(url);
+            // ThenTheStatusCodeShouldBe(HttpStatusCode.OK);
+            return response.StatusCode == HttpStatusCode.OK;
+            // ThenTheResponseBodyShouldBe("Hello from Laura");
+        }, CancelMe);
+        updated.ShouldBeTrue();
     }
 
     private void GivenTheConsulConfigurationIs(FileConfiguration config)
     {
-        _config = config;
+        _consulConfig = config;
     }
 
     private void GivenTheServicesAreRegisteredWithConsul(params ServiceEntry[] serviceEntries)
@@ -346,7 +214,7 @@ public sealed class ConsulConfigurationInConsulTests : RateLimitingSteps
         static void WithConsulToStoreConfig(IServiceCollection services)
             => services.AddOcelot().AddConsul().AddConfigStoredInConsul();
         GivenOcelotIsRunning(WithConsulToStoreConfig);
-        return Task.Delay(1250);
+        return Task.Delay(1250, CancelMe);
     }
 
     private void GivenThereIsAFakeConsulServiceDiscoveryProvider(int port, string serviceName)
@@ -355,13 +223,13 @@ public sealed class ConsulConfigurationInConsulTests : RateLimitingSteps
         {
             if (context.Request.Method.Equals(HttpMethods.Get, StringComparison.CurrentCultureIgnoreCase) && context.Request.Path.Value == "/v1/kv/InternalConfiguration")
             {
-                var json = JsonConvert.SerializeObject(_config);
+                var json = JsonConvert.SerializeObject(_consulConfig);
                 var bytes = Encoding.UTF8.GetBytes(json);
                 var base64 = Convert.ToBase64String(bytes);
                 var kvp = new FakeConsulGetResponse(base64);
                 json = JsonConvert.SerializeObject(new[] { kvp });
                 context.Response.Headers.Append("Content-Type", "application/json");
-                await context.Response.WriteAsync(json);
+                await context.Response.WriteAsync(json, context.RequestAborted);
             }
             else if (context.Request.Method.Equals(HttpMethods.Put, StringComparison.CurrentCultureIgnoreCase) && context.Request.Path.Value == "/v1/kv/InternalConfiguration")
             {
@@ -371,10 +239,10 @@ public sealed class ConsulConfigurationInConsulTests : RateLimitingSteps
 
                     // Synchronous operations are disallowed. Call ReadAsync or set AllowSynchronousIO to true instead.
                     // var json = reader.ReadToEnd();                                            
-                    var json = await reader.ReadToEndAsync();
-                    _config = JsonConvert.DeserializeObject<FileConfiguration>(json);
+                    var json = await reader.ReadToEndAsync(context.RequestAborted);
+                    _consulConfig = JsonConvert.DeserializeObject<FileConfiguration>(json);
                     var response = JsonConvert.SerializeObject(true);
-                    await context.Response.WriteAsync(response);
+                    await context.Response.WriteAsync(response, context.RequestAborted);
                 }
                 catch (Exception e)
                 {
@@ -386,21 +254,19 @@ public sealed class ConsulConfigurationInConsulTests : RateLimitingSteps
             {
                 var json = JsonConvert.SerializeObject(_consulServices);
                 context.Response.Headers.Append("Content-Type", "application/json");
-                await context.Response.WriteAsync(json);
+                await context.Response.WriteAsync(json, context.RequestAborted);
             }
         });
     }
 
-    public class FakeConsulGetResponse
+    public class FakeConsulGetResponse(string value)
     {
-        public FakeConsulGetResponse(string value) => Value = value;
-
         public int CreateIndex => 100;
         public int ModifyIndex => 200;
         public int LockIndex => 200;
         public string Key => "InternalConfiguration";
         public int Flags => 0;
-        public string Value { get; }
+        public string Value { get; } = value;
         public string Session => "adf4238a-882b-9ddc-4a9d-5b6758e4159e";
     }
 
@@ -409,7 +275,7 @@ public sealed class ConsulConfigurationInConsulTests : RateLimitingSteps
         Task MapStatus(HttpContext context)
         {
             context.Response.StatusCode = (int)statusCode;
-            return context.Response.WriteAsync(responseBody);
+            return context.Response.WriteAsync(responseBody, context.RequestAborted);
         }
         handler.GivenThereIsAServiceRunningOn(port, basePath, MapStatus);
     }

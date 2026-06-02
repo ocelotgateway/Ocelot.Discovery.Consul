@@ -11,7 +11,7 @@ namespace Ocelot.Discovery.Consul.Acceptance;
 
 public sealed class ConsulWebSocketTests : WebSocketsSteps
 {
-    private readonly List<ServiceEntry> _serviceEntries = new();
+    private readonly List<ServiceEntry> _serviceEntries = [];
 
     [Fact]
     public void ShouldProxyWebsocketInputToDownstreamServiceAndUseServiceDiscoveryAndLoadBalancer()
@@ -76,8 +76,8 @@ public sealed class ConsulWebSocketTests : WebSocketsSteps
             .And(_ => StartOcelotWithWebSockets(ocelotPort, WithConsul))
             .And(_ => GivenThereIsAFakeConsulServiceDiscoveryProvider(consulPort, serviceName))
             .And(_ => GivenTheServicesAreRegisteredWithConsul(serviceEntryOne, serviceEntryTwo))
-            .And(_ => GivenWebSocketsServiceIsRunningAsync(downstreamPort, "/ws", EchoAsync, CancellationToken.None))
-            .And(_ => GivenWebSocketsServiceIsRunningAsync(secondDownstreamPort, "/ws", MessageAsync, CancellationToken.None))
+            .And(_ => GivenWebSocketsServiceIsRunningAsync(downstreamPort, "/ws", EchoAsync))
+            .And(_ => GivenWebSocketsServiceIsRunningAsync(secondDownstreamPort, "/ws", MessageAsync))
             .When(_ => WhenIStartTheClients(ocelotPort))
             .Then(_ => ThenBothDownstreamServicesAreCalled())
             .BDDfy();
@@ -101,7 +101,7 @@ public sealed class ConsulWebSocketTests : WebSocketsSteps
             {
                 var json = JsonConvert.SerializeObject(_serviceEntries);
                 context.Response.Headers.Append("Content-Type", "application/json");
-                return context.Response.WriteAsync(json);
+                return context.Response.WriteAsync(json, context.RequestAborted);
             }
             return Task.CompletedTask;
         }

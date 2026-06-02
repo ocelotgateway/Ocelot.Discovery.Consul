@@ -238,19 +238,11 @@ public sealed partial class ConsulServiceDiscoveryTests : DiscoverySteps, IDispo
 
     private async Task WhenIGetUrlOnTheApiGatewayWaitingForTheResponseToBeOk(string url)
     {
-        var result = await Wait.For(2_000).UntilAsync(async () =>
+        var result = await Wait.For(2_000).UntilAsync(async (cancellation) =>
         {
-            try
-            {
-                response = await ocelotClient.GetAsync(url);
-                response.EnsureSuccessStatusCode();
-                return true;
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-        });
+            response = await ocelotClient.GetAsync(url, CancelMe);
+            return response.IsSuccessStatusCode;
+        }, CancelMe);
         result.ShouldBeTrue();
     }
 
@@ -622,7 +614,7 @@ public sealed partial class ConsulServiceDiscoveryTests : DiscoverySteps, IDispo
         request.Headers.Add(nameof(HttpRequestHeaders.Host), requestHost); // !
         if (cookie != null)
             request.Headers.Add("Cookie", cookie.ToString());
-        response = await ocelotClient.ShouldNotBeNull().SendAsync(request);
+        response = await ocelotClient.ShouldNotBeNull().SendAsync(request, CancelMe);
     }
 
     private void ThenTheTokenIs(string token)
@@ -678,7 +670,7 @@ public sealed partial class ConsulServiceDiscoveryTests : DiscoverySteps, IDispo
 
                 //}
                 context.Response.Headers.Append("Content-Type", "application/json");
-                await context.Response.WriteAsync(json);
+                await context.Response.WriteAsync(json, context.RequestAborted);
                 return;
             }
 
@@ -688,7 +680,7 @@ public sealed partial class ConsulServiceDiscoveryTests : DiscoverySteps, IDispo
                 int count = Interlocked.Increment(ref _counterNodes);
                 var json = JsonConvert.SerializeObject(_consulNodes);
                 context.Response.Headers.Append("Content-Type", "application/json");
-                await context.Response.WriteAsync(json);
+                await context.Response.WriteAsync(json, context.RequestAborted);
             }
         });
     }

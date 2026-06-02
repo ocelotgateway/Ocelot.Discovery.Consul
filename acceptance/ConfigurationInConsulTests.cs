@@ -14,11 +14,7 @@ public sealed class ConfigurationInConsulTests : AcceptanceSteps
 {
     private FileConfiguration _config;
     private readonly List<ServiceEntry> _consulServices;
-
-    public ConfigurationInConsulTests()
-    {
-        _consulServices = new List<ServiceEntry>();
-    }
+    public ConfigurationInConsulTests() => _consulServices = [];
 
     [Fact]
     public void Should_return_response_200_with_simple_url_when_using_jsonserialized_cache()
@@ -56,6 +52,9 @@ public sealed class ConfigurationInConsulTests : AcceptanceSteps
     {
         handler.GivenThereIsAServiceRunningOn(consulPort, async context =>
         {
+            if (context.RequestAborted.IsCancellationRequested || CancelMe.IsCancellationRequested)
+                return;
+
             if (context.Request.Method.Equals(HttpMethods.Get, StringComparison.InvariantCultureIgnoreCase) &&
                 context.Request.Path.Value == "/v1/kv/InternalConfiguration")
             {
@@ -75,10 +74,10 @@ public sealed class ConfigurationInConsulTests : AcceptanceSteps
 
                     // Synchronous operations are disallowed. Call ReadAsync or set AllowSynchronousIO to true instead.
                     // var json = reader.ReadToEnd();                                            
-                    var json = await reader.ReadToEndAsync();
+                    var json = await reader.ReadToEndAsync(context.RequestAborted);
                     _config = JsonConvert.DeserializeObject<FileConfiguration>(json);
                     var response = JsonConvert.SerializeObject(true);
-                    await context.Response.WriteAsync(response);
+                    await context.Response.WriteAsync(response, context.RequestAborted);
                 }
                 catch (Exception e)
                 {

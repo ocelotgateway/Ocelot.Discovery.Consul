@@ -25,7 +25,7 @@ public static class OcelotBuilderExtensions
             .AddSingleton(ConsulProviderFactory.Get)
             .AddSingleton<IConsulClientFactory, ConsulClientFactory>()
             .AddScoped<IConsulServiceBuilder, DefaultConsulServiceBuilder>()
-            .RemoveAll(typeof(IFileConfigurationPollerOptions))
+            .RemoveAll<IFileConfigurationPollerOptions>()
             .AddSingleton<IFileConfigurationPollerOptions, ConsulFileConfigurationPollerOptions>();
         return builder;
     }
@@ -45,19 +45,18 @@ public static class OcelotBuilderExtensions
     public static IOcelotBuilder AddConsul<TServiceBuilder>(this IOcelotBuilder builder)
         where TServiceBuilder : class, IConsulServiceBuilder
     {
-        AddConsul(builder).Services
+        AddConsul(builder);
+        builder.Services
             .RemoveAll<IConsulServiceBuilder>()
-            .AddScoped(typeof(IConsulServiceBuilder), typeof(TServiceBuilder));
+            .AddScoped<IConsulServiceBuilder, TServiceBuilder>();
         return builder;
     }
 
     public static IOcelotBuilder AddConfigStoredInConsul(this IOcelotBuilder builder)
     {
         builder.Services
-            .AddSingleton(ConsulMiddlewareConfigurationProvider.Get)
-            .AddHostedService<FileConfigurationPoller>()
-            .RemoveAll<IFileConfigurationRepository>()
-            .AddSingleton<IFileConfigurationRepository, ConsulFileConfigurationRepository>();
-        return builder;
+            .AddSingleton(ConsulMiddlewareConfigurationProvider.Get);
+        return builder
+            .AddConfigurationDiscoveryPoller<FileConfigurationPoller, ConsulFileConfigurationPollerOptions, ConsulFileConfigurationRepository>();
     }
 }

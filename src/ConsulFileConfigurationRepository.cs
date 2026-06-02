@@ -7,7 +7,6 @@ using Ocelot.Configuration.File;
 using Ocelot.Configuration.Repository;
 using Ocelot.DependencyInjection;
 using Ocelot.Logging;
-using Ocelot.Responses;
 using System.Text;
 
 namespace Ocelot.Discovery.Consul;
@@ -86,13 +85,9 @@ public class ConsulFileConfigurationRepository : IFileConfigurationRepository
             $"Unable to set {nameof(FileConfiguration)} in {nameof(Consul)}, response status code from {nameof(Consul)} was {result.StatusCode}.");
     }
 
-    public FileConfiguration Get()
-    {
-        throw new NotImplementedException();
-    }
+    public FileConfiguration? Get()
+        => GetAsync(CancellationToken.None).GetAwaiter().GetResult();
 
     public void Set(FileConfiguration configuration)
-    {
-        throw new NotImplementedException();
-    }
+        => SetAsync(configuration, CancellationToken.None).GetAwaiter();
 }
