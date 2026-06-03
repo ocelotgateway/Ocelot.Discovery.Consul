@@ -201,7 +201,7 @@ jobs:
       uses: codecov/codecov-action@v6 # https://github.com/codecov/codecov-action
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
-        slug: ThreeMammals/Ocelot.QualityOfService.Polly
+        slug: ThreeMammals/Ocelot.Discovery.Consul
         files: ${{ steps.files.outputs.UNIT_COVERAGE_FILE }}
         flags: unit
       continue-on-error: true

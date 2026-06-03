@@ -2,6 +2,12 @@
 [![Consul.NET Logo](/.github/img/consul.net_icon.svg)](https://github.com/G-Research/consuldotnet "Go to Consul.NET repository")
 [![HashiCorp Consul Logo](/.github/img/consul.hashicorp_icon.svg)](https://github.com/hashicorp/consul "Go to HashiCorp Consul repository")
 # Ocelot.Discovery.Consul
+[![Release](https://github.com/ThreeMammals/Ocelot.Discovery.Consul/actions/workflows/release.yml/badge.svg)](https://github.com/ThreeMammals/Ocelot.Discovery.Consul/actions/workflows/release.yml)
+[![Publish](https://github.com/ThreeMammals/Ocelot.Discovery.Consul/actions/workflows/publish.yml/badge.svg)](https://github.com/ThreeMammals/Ocelot.Discovery.Consul/actions/workflows/publish.yml)
+[![codecov](https://codecov.io/gh/ThreeMammals/Ocelot.Discovery.Consul/graph/badge.svg?token=C3IjBrMfdR)](https://codecov.io/gh/ThreeMammals/Ocelot.Discovery.Consul)
+[![NuGet](https://img.shields.io/nuget/vpre/Ocelot.Discovery.Consul?logo=nuget&label=NuGet)](https://www.nuget.org/packages/Ocelot.Discovery.Consul/ "Download Ocelot.Discovery.Consul from NuGet.org")
+[![Downloads](https://img.shields.io/nuget/dt/Ocelot.Discovery.Consul?logo=nuget&label=Downloads)](https://www.nuget.org/packages/Ocelot.Discovery.Consul/ "Total Ocelot.Discovery.Consul downloads from NuGet.org")
+
 [Ocelot](https://github.com/ThreeMammals/Ocelot) [Service Discovery](https://ocelot.readthedocs.io/en/latest/features/servicediscovery.html) feature, powered by [Consul.NET](https://consuldot.net) client integration for [HashiCorp Consul](https://developer.hashicorp.com/consul) service discovery.
 
 | Project website | [Consul.NET](https://consuldot.net) by [G Research](https://opensource.gresearch.com) |
