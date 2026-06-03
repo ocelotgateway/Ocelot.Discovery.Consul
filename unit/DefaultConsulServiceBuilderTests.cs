@@ -201,4 +201,170 @@ public sealed class DefaultConsulServiceBuilderTests : UnitTest
         Assert.Equal(3, actual.Count());
         Assert.Contains("3", actual);
     }
+
+    [Fact]
+    public void IsValid_ValidAddressAndPort_ReturnsTrue()
+    {
+        Arrange();
+        var entry = new ServiceEntry
+        {
+            Service = new AgentService { Address = "localhost", Port = 80, Service = "my-service" },
+        };
+
+        var result = sut.IsValid(entry);
+
+        Assert.True(result);
+        logger.Verify(x => x.LogWarning(It.IsAny<Func<string>>()), Times.Never);
+    }
+
+    [Fact]
+    public void IsValid_EmptyAddress_ReturnsFalseAndLogsWarning()
+    {
+        Arrange();
+        var entry = new ServiceEntry
+        {
+            Service = new AgentService { Address = string.Empty, Port = 80, Service = "svc" },
+        };
+
+        var result = sut.IsValid(entry);
+
+        Assert.False(result);
+        logger.Verify(x => x.LogWarning(It.IsAny<Func<string>>()), Times.Once);
+    }
+
+    [Fact]
+    public void IsValid_AddressWithHttpPrefix_ReturnsFalse()
+    {
+        Arrange();
+        var entry = new ServiceEntry
+        {
+            Service = new AgentService { Address = "http://localhost", Port = 80, Service = "svc" },
+        };
+
+        var result = sut.IsValid(entry);
+
+        Assert.False(result);
+    }
+
+    [Fact]
+    public void IsValid_AddressWithHttpsPrefix_ReturnsFalse()
+    {
+        Arrange();
+        var entry = new ServiceEntry
+        {
+            Service = new AgentService { Address = "https://localhost", Port = 443, Service = "svc" },
+        };
+
+        var result = sut.IsValid(entry);
+
+        Assert.False(result);
+    }
+
+    [Fact]
+    public void IsValid_ZeroPort_ReturnsFalse()
+    {
+        Arrange();
+        var entry = new ServiceEntry
+        {
+            Service = new AgentService { Address = "localhost", Port = 0, Service = "svc" },
+        };
+
+        var result = sut.IsValid(entry);
+
+        Assert.False(result);
+    }
+
+    [Fact]
+    public void BuildServices_NullEntries_ThrowsArgumentNullException()
+    {
+        Arrange();
+
+        Assert.Throws<ArgumentNullException>(() => sut.BuildServices(null, null));
+    }
+
+    [Fact]
+    public void BuildServices_ValidEntries_ReturnsServiceList()
+    {
+        Arrange();
+        var entries = new ServiceEntry[]
+        {
+            new()
+            {
+                Node = new Node { Name = "node1", Address = "10.0.0.1" },
+                Service = new AgentService { Service = "svc", Address = "10.0.0.1", Port = 8080, ID = "id1" },
+            },
+        };
+
+        var result = sut.BuildServices(entries, null).ToList();
+
+        Assert.Single(result);
+        Assert.Equal("svc", result[0].Name);
+        Assert.Equal(8080, result[0].HostAndPort.DownstreamPort);
+    }
+
+    [Fact]
+    public void BuildServices_EmptyEntries_ReturnsEmptyList()
+    {
+        Arrange();
+
+        var result = sut.BuildServices([], null).ToList();
+
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public void BuildServices_InvalidEntry_SkipsEntry()
+    {
+        Arrange();
+        var entries = new ServiceEntry[]
+        {
+            new() { Service = new AgentService { Address = string.Empty, Port = 80, Service = "svc" } },
+        };
+
+        var result = sut.BuildServices(entries, null).ToList();
+
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public void CreateService_ValidEntry_ReturnsService()
+    {
+        Arrange();
+        var entry = new ServiceEntry
+        {
+            Service = new AgentService
+            {
+                Service = "svc",
+                Address = "localhost",
+                Port = 8080,
+                ID = "id1",
+                Tags = ["version-v2"],
+            },
+        };
+
+        var result = sut.CreateService(entry, null);
+
+        Assert.NotNull(result);
+        Assert.Equal("svc", result.Name);
+        Assert.Equal("localhost", result.HostAndPort.DownstreamHost);
+        Assert.Equal(8080, result.HostAndPort.DownstreamPort);
+        Assert.Equal("id1", result.Id);
+        Assert.Equal("v2", result.Version);
+    }
+
+    [Fact]
+    public void CreateService_WithNode_UsesNodeName()
+    {
+        Arrange();
+        var entry = new ServiceEntry
+        {
+            Service = new AgentService { Service = "svc", Address = "10.0.0.1", Port = 8080, ID = "id1" },
+        };
+        var node = new Node { Name = "my-node", Address = "10.0.0.1" };
+
+        var result = sut.CreateService(entry, node);
+
+        Assert.NotNull(result);
+        Assert.Equal("my-node", result.HostAndPort.DownstreamHost);
+    }
 }

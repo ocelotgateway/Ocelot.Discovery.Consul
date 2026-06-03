@@ -180,6 +180,51 @@ public class ConsulFileConfigurationRepositoryTests : UnitTest
             .ReturnsAsync(query);
     }
 
+    [Fact]
+    public async Task SetAsync_WhenPutFails_ThrowsConsulConfigurationRepositoryException()
+    {
+        // Arrange
+        var config = GivenFakeFileConfiguration();
+        GivenWritingToConsulFails();
+
+        // Act & Assert
+        await Assert.ThrowsAsync<ConsulConfigurationRepositoryException>(() => _repo.SetAsync(config, CancelMe));
+    }
+
+    [Fact]
+    public void Get_WhenCalled_ReturnsConfiguration()
+    {
+        // Arrange
+        var config = _fileConfiguration = GivenFakeFileConfiguration();
+        GivenFetchFromConsulSucceeds();
+
+        // Act
+        var result = _repo.Get();
+
+        // Assert
+        var expected = JsonConvert.SerializeObject(config, Formatting.Indented);
+        var actual = JsonConvert.SerializeObject(result, Formatting.Indented);
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void Set_WhenCalled_DoesNotThrow()
+    {
+        // Arrange
+        var config = GivenFakeFileConfiguration();
+        GivenWritingToConsulSucceeds();
+
+        // Act & Assert: sync Set should not throw
+        var exception = Record.Exception(() => _repo.Set(config));
+        Assert.Null(exception);
+    }
+
+    private void GivenWritingToConsulFails()
+    {
+        var response = new WriteResult<bool> { Response = false };
+        _kvEndpoint.Setup(x => x.Put(It.IsAny<KVPair>(), It.IsAny<CancellationToken>())).ReturnsAsync(response);
+    }
+
     private void ThenTheConfigurationIsStoredAs(FileConfiguration config)
     {
         var json = JsonConvert.SerializeObject(config, Formatting.Indented);

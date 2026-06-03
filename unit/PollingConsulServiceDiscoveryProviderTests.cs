@@ -91,4 +91,24 @@ public class PollingConsulServiceDiscoveryProviderTests : UnitTest
 
         Assert.True(result);
     }
+
+    [Fact]
+    public async Task GetAsync_WhenServicesAvailableAndPollingIntervalNotExpired_ReturnsCachedServices()
+    {
+        // Arrange: large polling interval so cache never expires during test
+        const int largePollingInterval = 600_000; // 10 minutes
+        var service = new Service(string.Empty, new ServiceHostAndPort(string.Empty, 0), string.Empty, string.Empty, []);
+        GivenConsulReturns(service);
+        var provider = new PollConsul(largePollingInterval, "cached-service", _factory.Object, _consulServiceDiscoveryProvider.Object);
+
+        // Act: first call populates the cache
+        var firstResult = await provider.GetAsync();
+
+        // Act: second call should use cached result
+        _result = await provider.GetAsync();
+
+        // Assert: consul was only queried once
+        Assert.Single(_result);
+        _consulServiceDiscoveryProvider.Verify(x => x.GetAsync(), Times.Once);
+    }
 }
