@@ -1,3 +1,4 @@
+using Ocelot.Configuration.Repository;
 using Ocelot.Errors;
 
 namespace Ocelot.Discovery.Consul.UnitTests;
@@ -24,7 +25,8 @@ public class ConsulConfigurationRepositoryExceptionTests : UnitTest
         var sut = new ConsulConfigurationRepositoryException("error");
 
         // Assert
-        Assert.IsAssignableFrom<Exception>(sut);
+        Assert.IsAssignableFrom<ConfigurationRepositoryException>(sut);
+        Assert.Equal("error", sut.Message);
     }
 
     [Fact]
@@ -38,7 +40,8 @@ public class ConsulConfigurationRepositoryExceptionTests : UnitTest
 
         // Assert
         Assert.NotNull(sut);
-        Assert.IsAssignableFrom<Exception>(sut);
+        Assert.IsAssignableFrom<ConfigurationRepositoryException>(sut);
+        Assert.Equal("UnknownError: consul error", sut.Message);
     }
 
     [Fact]
