@@ -204,6 +204,7 @@ jobs:
         slug: ThreeMammals/Ocelot.Discovery.Consul
         files: ${{ steps.files.outputs.UNIT_COVERAGE_FILE }}
         flags: unit
+        disable_search: true
       continue-on-error: true
 
   publish:
