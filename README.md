@@ -5,6 +5,7 @@
 [![Release](https://github.com/ThreeMammals/Ocelot.Discovery.Consul/actions/workflows/release.yml/badge.svg)](https://github.com/ThreeMammals/Ocelot.Discovery.Consul/actions/workflows/release.yml)
 [![Publish](https://github.com/ThreeMammals/Ocelot.Discovery.Consul/actions/workflows/publish.yml/badge.svg)](https://github.com/ThreeMammals/Ocelot.Discovery.Consul/actions/workflows/publish.yml)
 [![codecov](https://codecov.io/gh/ThreeMammals/Ocelot.Discovery.Consul/graph/badge.svg?token=C3IjBrMfdR&flag=unit)](https://codecov.io/gh/ThreeMammals/Ocelot.Discovery.Consul)
+[![codecov2](https://codecov.io/gh/ThreeMammals/Ocelot.Discovery.Consul/graph/badge.svg?token=C3IjBrMfdR&flag=accept)](https://codecov.io/gh/ThreeMammals/Ocelot.Discovery.Consul)
 [![NuGet](https://img.shields.io/nuget/vpre/Ocelot.Discovery.Consul?logo=nuget&label=NuGet)](https://www.nuget.org/packages/Ocelot.Discovery.Consul/ "Download Ocelot.Discovery.Consul from NuGet.org")
 [![Downloads](https://img.shields.io/nuget/dt/Ocelot.Discovery.Consul?logo=nuget&label=Downloads)](https://www.nuget.org/packages/Ocelot.Discovery.Consul/ "Total Ocelot.Discovery.Consul downloads from NuGet.org")
 

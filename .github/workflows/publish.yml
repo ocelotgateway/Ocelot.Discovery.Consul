@@ -205,7 +205,15 @@ jobs:
         files: ${{ steps.files.outputs.UNIT_COVERAGE_FILE }}
         flags: unit
         disable_search: true
-      continue-on-error: true
+    - name: Codecov 2
+      if: steps.files.outputs.ACCEPTANCE_COVERAGE_FILE_EXISTS == 'true' && success()
+      uses: codecov/codecov-action@v6 # https://github.com/codecov/codecov-action
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        slug: ThreeMammals/Ocelot.Discovery.Consul
+        files: ${{ steps.files.outputs.ACCEPTANCE_COVERAGE_FILE }}
+        flags: accept
+        disable_search: true
 
   publish:
     needs: build
