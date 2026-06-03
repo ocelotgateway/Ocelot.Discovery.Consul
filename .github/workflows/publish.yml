@@ -235,7 +235,7 @@ jobs:
           echo "::endgroup::"
           echo ------------------------
           # Replaces relative GitHub paths with NuGet-friendly absolute URLs
-          sed -i 's|/ocelot_icon.png|https://raw.githubusercontent.com/ThreeMammals/Ocelot.Discovery.Consul/refs/heads/main/ocelot_icon.png|g; s|/consul.net_icon.svg|https://raw.githubusercontent.com/ThreeMammals/Ocelot.Discovery.Consul/refs/heads/main/consul.net_icon.svg|g; s|/consul.hashicorp_icon.svg|https://raw.githubusercontent.com/ThreeMammals/Ocelot.Discovery.Consul/refs/heads/main/consul.hashicorp_icon.svg|g' README.md
+          sed -i 's|/.github/img/ocelot_icon.png|https://raw.githubusercontent.com/ThreeMammals/Ocelot.Discovery.Consul/refs/heads/main/.github/img/ocelot_icon.png|g; s|/.github/img/consul.net_icon.svg|https://raw.githubusercontent.com/ThreeMammals/Ocelot.Discovery.Consul/refs/heads/main/.github/img/consul.net_icon.svg|g; s|/.github/img/consul.hashicorp_icon.svg|https://raw.githubusercontent.com/ThreeMammals/Ocelot.Discovery.Consul/refs/heads/main/.github/img/consul.hashicorp_icon.svg|g' README.md
           # Removes tags <sub> and </sub>
           sed -i 's/<\/\?sub>//g' README.md
           echo "::group::New content of README.md"

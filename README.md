@@ -1,6 +1,6 @@
-[![Ocelot Logo](/ocelot_icon.png)](https://github.com/ThreeMammals/Ocelot/ "Go to Ocelot repository")
-[![Consul.NET Logo](/consul.net_icon.svg)](https://github.com/G-Research/consuldotnet "Go to Consul.NET repository")
-[![HashiCorp Consul Logo](/consul.hashicorp_icon.svg)](https://github.com/hashicorp/consul "Go to HashiCorp Consul repository")
+[![Ocelot Logo](/.github/img/ocelot_icon.png)](https://github.com/ThreeMammals/Ocelot/ "Go to Ocelot repository")
+[![Consul.NET Logo](/.github/img/consul.net_icon.svg)](https://github.com/G-Research/consuldotnet "Go to Consul.NET repository")
+[![HashiCorp Consul Logo](/.github/img/consul.hashicorp_icon.svg)](https://github.com/hashicorp/consul "Go to HashiCorp Consul repository")
 # Ocelot.Discovery.Consul
 [Ocelot](https://github.com/ThreeMammals/Ocelot) [Service Discovery](https://ocelot.readthedocs.io/en/latest/features/servicediscovery.html) feature, powered by [Consul.NET](https://consuldot.net) client integration for [HashiCorp Consul](https://developer.hashicorp.com/consul) service discovery.
 
