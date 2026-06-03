@@ -124,7 +124,7 @@ public sealed class ConsulProviderFactoryTests : UnitTest, IDisposable
     }
 
     [Fact]
-    [Trait("Bug", "2178")]
+    [Trait("Bug", "2178")] // https://github.com/ThreeMammals/Ocelot/issues/2178
     public void Get_RootProvider_ShouldThrowInvalidOperationException()
     {
         // Arrange

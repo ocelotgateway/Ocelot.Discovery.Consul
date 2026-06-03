@@ -24,14 +24,14 @@ public class PollingConsulServiceDiscoveryProviderTests : UnitTest
     }
 
     [Fact]
-    public void Should_return_service_from_consul()
+    public async Task Should_return_service_from_consul()
     {
         // Arrange
         var service = new Service(string.Empty, new ServiceHostAndPort(string.Empty, 0), string.Empty, string.Empty, []);
         GivenConsulReturns(service);
 
         // Act
-        WhenIGetTheServices(1);
+        await WhenIGetTheServices(1);
 
         // Assert
         Assert.Single(_result);
@@ -57,21 +57,21 @@ public class PollingConsulServiceDiscoveryProviderTests : UnitTest
         _consulServiceDiscoveryProvider.Setup(x => x.GetAsync()).ReturnsAsync(_services);
     }
 
-    private void WhenIGetTheServices(int expected)
+    private async Task WhenIGetTheServices(int expected)
     {
         var provider = new PollConsul(_delay, "test", _factory.Object, _consulServiceDiscoveryProvider.Object);
-        var result = Wait.For(3_000).Until(() =>
+        var result = await Wait.For(3_000).UntilAsync(async (ct) =>
         {
             try
             {
-                _result = provider.GetAsync().GetAwaiter().GetResult();
+                _result = await provider.GetAsync();
                 return _result.Count == expected;
             }
             catch (Exception)
             {
                 return false;
             }
-        });
+        }, CancelMe);
         Assert.True(result);
     }
 
